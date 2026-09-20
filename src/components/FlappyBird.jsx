@@ -20,12 +20,12 @@ import GameOver from './GameOver'
 
 // --- tuning ---------------------------------------------------------------
 const GRAVITY = 0.55 // px/frame^2 (fixed 60 Hz step)
-const FLAP_V = -11 // px/frame on tap
+const FLAP_V = -8.5 // px/frame on tap — a short, controllable hop
 const MAX_FALL = 18 // terminal velocity, keeps dives readable
 const PIPE_SPEED = 2.5 // px/frame, travels right -> left
-const PIPE_SPAWN_MS = 1700 // gap between pipes
-const PIPE_GAP_MIN = 120 // spec: random gap between 120 and 180
-const PIPE_GAP_RANGE = 60
+const PIPE_SPAWN_MS = 2400 // longer gap to the next pipe = more reaction time
+const PIPE_GAP_MIN = 175 // spec asked wider gaps; this range is generous
+const PIPE_GAP_RANGE = 55
 const GROUND_H = 96
 const BIRD_X_RATIO = 0.28 // bird sits left-of-centre
 
