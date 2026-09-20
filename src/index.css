@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #0b1026;
+  overscroll-behavior: none;
+}
+
+/* The wing flaps forever; animation-duration is tuned from the game loop. */
+@keyframes wing-flap {
+  0%,
+  100% {
+    transform: rotateZ(18deg) scaleY(0.55);
+  }
+  50% {
+    transform: rotateZ(-24deg) scaleY(1);
+  }
+}
+
+.wing {
+  transform-origin: 62% 42%;
+  animation: wing-flap 0.32s ease-in-out infinite;
+}
+
+/* A repeating seam for the ground strip, scrolled via backgroundPositionX. */
+.ground-strip {
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 3px, transparent 3px 32px),
+    linear-gradient(180deg, #ded895 0 55%, #c9bd72 55% 100%);
+  background-size: 32px 100%, 100% 100%;
+  background-repeat: repeat-x;
+  animation: ground-scroll 0.55s linear infinite;
+}
+
+@keyframes ground-scroll {
+  from {
+    background-position-x: 0, 0;
+  }
+  to {
+    background-position-x: -32px, 0;
+  }
+}
+
+/* Collapse screen-shake: a tight 2px rattle on the whole stage. */
+@keyframes stage-shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-2px, 1px, 0);
+  }
+  40% {
+    transform: translate3d(2px, -1px, 0);
+  }
+  60% {
+    transform: translate3d(-2px, -1px, 0);
+  }
+  80% {
+    transform: translate3d(2px, 1px, 0);
+  }
+}
+
+.stage-shake {
+  animation: stage-shake 0.42s ease-in-out;
+}
+
+/* Parallax clouds: drift left and wrap. Pure CSS = zero per-frame cost. */
+@keyframes cloud-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-150vw, 0, 0);
+  }
+}
+
+.cloud {
+  animation-name: cloud-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* The play area: 800x600 on desktop, full-bleed on phones. */
+.stage {
+  width: min(100vw, 800px);
+  height: min(100dvh, 600px);
+}
+
+@media (max-width: 820px) {
+  .stage {
+    width: 100vw;
+    height: 100dvh;
+  }
+}
