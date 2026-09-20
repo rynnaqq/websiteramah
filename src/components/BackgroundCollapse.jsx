@@ -28,7 +28,7 @@
  * ============================================================================
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 // --- grid geometry ---------------------------------------------------------
@@ -92,9 +92,45 @@ export default function BackgroundCollapse({ cycle = 0, onCollapseStart, onColla
   const [peeled, setPeeled] = useState(false)
   const [videoFailed, setVideoFailed] = useState(false)
   const [videoFilter, setVideoFilter] = useState('none')
+  const videoRef = useRef(null)
 
   const skin = SKINS[((cycle - 1) % SKINS.length + SKINS.length) % SKINS.length]
   const revealed = cycle >= 1 && !videoFailed
+
+  /**
+   * Audio fade: ramp video.volume 0 -> 1 in lockstep with the 2.5s visual
+   * reveal, so the soundtrack swells in as the sky finishes collapsing.
+   *
+   * Browsers only permit volume control after a user gesture, and the first
+   * collapse always lands mid-round (the player has already tapped/pressed to
+   * start), so we are unlocked by then. Until then the element stays `muted`
+   * so autoplay is legal.
+   */
+  useEffect(() => {
+    const el = videoRef.current
+    if (!el) return
+    if (!revealed) {
+      // Fresh round: silence it again so the next collapse can re-swells.
+      el.muted = true
+      el.volume = 0
+      return
+    }
+    el.volume = 0 // silence first, then unmute, so nothing blips if the ramp is blocked
+    el.muted = false
+    const t0 = performance.now()
+    let raf = 0
+    const tick = () => {
+      const k = Math.min(1, (performance.now() - t0) / (VIDEO_REVEAL * 1000))
+      try {
+        el.volume = k // easeInOut-ish curve via k^1.6 would work; linear is fine
+      } catch {
+        return // volume locked (no gesture yet) — give up quietly, stay muted
+      }
+      if (k < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [revealed])
 
   // --- trigger a collapse whenever `cycle` advances -----------------------
   useEffect(() => {
@@ -162,11 +198,12 @@ export default function BackgroundCollapse({ cycle = 0, onCollapseStart, onColla
         transition={{ duration: VIDEO_REVEAL, ease: 'easeOut' }}
       >
         <motion.video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           src={VIDEO_SRC}
           autoPlay
           loop
-          muted
+          muted // unmuted by the fade effect once the user has started a round
           playsInline
           preload="auto"
           // slow parallax zoom 1 -> 1.1 -> 1, breathing in and out
